@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Mario Đơn Giản (Tối ưu Mobile Ngang)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario Đơn Giản (Sửa lỗi đứng trên platform)</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -11,24 +11,19 @@
             overflow: hidden;
             background-color: #87ceeb;
             background-image: url('body.jpg'); /* Đường dẫn đến ảnh nền bạn muốn */
-            background-size: cover; 
+            background-size: cover; /* Hoặc contain, hoặc 100% 100% tùy ý */
             background-repeat: no-repeat;
             background-position: center center;
+    /* backdrop-filter: brightness(0.5); */ /* Tùy chọn: Làm mờ hoặc tối ảnh nền */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            touch-action: manipulation; /* Ngăn chặn double tap zoom */
         }
 
         #game-container {
-            /* Tối ưu hóa: Sử dụng vmin và aspect-ratio để co giãn và giữ tỷ lệ */
-            width: 90vmin; 
-            height: 45vmin; /* Tỉ lệ 2:1 */
-            aspect-ratio: 2 / 1; 
-            max-width: 100vw;
-            max-height: 100vh;
-            
+            width: 900px;
+            height: 450px;
             border: 5px solid #333;
             background-color: #aaddff;
             position: relative;
@@ -40,17 +35,19 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 2500px; /* Kích thước thế giới cố định */
+            width: 2500px;
             height: 100%;
             transition: transform 0.1s linear;
             background-image: url('viahe1.jpg');
-            background-size: 500px 100%;
+            background-size: 500px 100%; /* Đặt chiều rộng cố định cho mỗi đơn vị lặp lại */
             background-repeat: repeat-x;
             background-position: center bottom;
-            image-rendering: pixelated; /* Sử dụng pixelated rendering cho game cổ điển */
+            image-rendering: -webkit-optimize-contrast; /* Làm sắc nét hình ảnh trên Chrome */
+            image-rendering: crisp-edges; /* Làm sắc nét hình ảnh trên Firefox */
             background-color: #2c1810;
         }
         
+        /* Thêm lớp overlay để tạo độ sâu và đồng nhất */
         #game-world::before {
             content: '';
             position: absolute;
@@ -85,31 +82,30 @@
             transform: scaleX(-1);
         }
 
-        .platform, .obstacle, .hazard, .moving-obstacle, .passthrough-platform {
-            position: absolute;
-            z-index: 5;
-            /* ... (Giữ nguyên styles cho elements trong game-world) ... */
-        }
-        
         .platform {
+            position: absolute;
             height: 50px;
+            z-index: 5;
             background: none;
             background-color: transparent;
             border: none;
             pointer-events: auto;
+            /* Ensure platforms with images show cleanly */
             background-repeat: no-repeat;
             background-position: center bottom;
             background-size: contain;
         }
 
+        /* Thêm style cho platform có thể xuyên qua (hố sâu) */
         .passthrough-platform {
+            position: absolute;
             height: 40px;
             z-index: 4;
-            background-image: url('ongnuoc.png');
+            background-image: url('ongnuoc.png'); /* Hình ảnh cống nước */
             background-size: 100% 100%;
             background-repeat: no-repeat;
             opacity: 0.9;
-            pointer-events: none;
+            pointer-events: none; /* Cho phép xuyên qua */
         }
 
         /* Thêm hiệu ứng cảnh báo cho hố sâu */
@@ -132,16 +128,31 @@
             50% { opacity: 0.7; }
             100% { opacity: 0.3; }
         }
+        
+        /* Thêm hiệu ứng cho khoảng trống giữa các platform */
+        #game-world::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 50%);
+            pointer-events: none;
+            z-index: 4;
+        }
 
         .obstacle, .hazard, .moving-obstacle {
             background-color: #8B4513;
-            background-image: url('khucgo.jpg');
-            background-size: cover;
-            background-repeat: repeat-x;
+            position: absolute;
+            background-image: url('khucgo.jpg'); /* Thay đổi đường dẫn ảnh tại đây */
+            background-size: cover; /* Hoặc '100% 100%' hoặc 'contain' tùy ý bạn muốn ảnh hiển thị */
+            background-repeat: repeat-x; /* Để ảnh lặp lại theo chiều ngang nếu platform dài hơn ảnh */
             border: 2px solid #555;
             z-index: 6;
         }
         .hazard {
+            /* Make hazard container visually transparent so the hazard sprite is shown cleanly */
             background-color: transparent;
             border: none;
             background-repeat: no-repeat;
@@ -149,27 +160,28 @@
             z-index: 6;
         }
         .moving-obstacle {
+            /* Make moving obstacle container visually transparent so only the sprite image is visible */
             background-color: transparent;
             border: none;
             background-repeat: no-repeat;
             background-position: center bottom;
+            /* background-size handled per-element in createLevel (contain) to preserve aspect ratio */
             z-index: 6;
         }
-        
+
         #finish-line {
             width: 400px;
             height: 400px;
             background-color: transparent;
             position: absolute;
-            background-image: url('hopbian.png'); 
-            background-size: contain;
-            background-repeat: no-repeat;
+            background-image: url('hopbian.png'); /* Thay đổi đường dẫn ảnh tại đây */
+            background-size: contain; /* Để giữ tỷ lệ ảnh */
+            background-repeat: no-repeat; /* Không lặp lại ảnh */
             background-position: center;
             border: none;
             z-index: 7;
         }
 
-        /* Vị trí mặc định trên PC (góc trên bên trái) */
         #game-info {
             position: absolute;
             top: 10px;
@@ -203,17 +215,7 @@
         #reset-character:hover {
             background-color: #45a049;
         }
-        
-        /* Controls wrapper để dễ dàng ẩn/hiện trên PC */
-        #controls-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Cho phép các sự kiện chạm xuyên qua nếu không chạm vào nút */
-        }
-        
+
         /* Mobile jump button (right side) */
         #jump-button {
             position: absolute;
@@ -230,11 +232,10 @@
             font-weight: 700;
             font-family: 'Roboto', sans-serif;
             z-index: 30;
-            touch-action: none; 
+            touch-action: none; /* prevent default scrolling while touching */
             user-select: none;
             -webkit-user-select: none;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            pointer-events: auto; /* Quan trọng: cho phép chạm vào nút */
         }
 
         #jump-button:active {
@@ -256,7 +257,6 @@
             justify-content: center;
             z-index: 29;
             touch-action: none;
-            pointer-events: auto; /* Quan trọng: cho phép chạm vào joystick */
         }
 
         #joystick-knob {
@@ -266,7 +266,7 @@
             background: rgba(255,255,255,0.18);
             box-shadow: 0 3px 8px rgba(0,0,0,0.4);
             transition: transform 0.06s linear;
-            pointer-events: none;
+            pointer-events: none; /* knob moves visually but events are on container */
         }
 
         /* Controls description placed below Reset Nhân Vật */
@@ -278,63 +278,58 @@
             line-height: 1.2;
         }
 
-        /* ----------------------------------------------- */
-        /* --- TỐI ƯU HÓA MOBILE (MÀN HÌNH NGANG) --- */
-        /* ----------------------------------------------- */
-        @media screen and (orientation: landscape) and (max-width: 1000px) {
-            
-            /* Đảm bảo game chiếm tối đa không gian */
-            body {
-                min-height: 100vh;
-                align-items: center;
-                justify-content: center;
-            }
+        #game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px 60px;
+            border-radius: 15px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 2.2em;
+            display: none;
+            z-index: 100;
+            text-align: center;
+            border: 3px solid #ffcc00;
+            text-shadow: 2px 2px 5px black;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.6);
+        }
+        #game-message p {
+            margin-bottom: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        #game-message ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            font-size: 0.6em;
+            max-height: 100px;
+            overflow-y: auto;
+            border-top: 1px dashed rgba(255,255,255,0.3);
+            padding-top: 10px;
+        }
+        #game-message li {
+            margin-bottom: 3px;
+        }
 
-            #game-container {
-                /* Vmin dựa trên cạnh nhỏ nhất (chiều cao) nên sẽ đảm bảo game vừa màn hình */
-                width: calc(100vw - 100px); /* Lấy gần hết chiều rộng */
-                height: 90vh;
-                max-height: 45vmin; /* Giới hạn chiều cao */
-                aspect-ratio: 2 / 1;
-            }
-
-            /* Di chuyển thông tin game ra khỏi container chính để không bị che khuất */
-            #game-info {
-                position: fixed; 
-                top: 2vmin;
-                left: auto; /* Loại bỏ left: 10px cũ */
-                right: 2vmin; /* Căn góc trên bên phải */
-                text-align: right;
-                z-index: 101;
-                font-size: 1.1em;
-            }
-            
-            /* Phóng to và căn chỉnh nút NHẢY */
-            #jump-button {
-                right: 3vmin; 
-                bottom: 10vmin; 
-                width: 14vmin; 
-                height: 14vmin;
-                font-size: 3vmin;
-            }
-
-            /* Phóng to và căn chỉnh Joystick */
-            #joystick {
-                left: 3vmin; 
-                bottom: 6vmin; 
-                width: 22vmin; 
-                height: 22vmin;
-            }
-
-            #joystick-knob {
-                width: 10vmin; 
-                height: 10vmin;
-            }
-            
-            /* Ẩn mô tả điều khiển trên di động (sẽ được xử lý lại trong JS) */
-            #controls-desc {
-                display: none; 
-            }
+        #reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.2s, transform 0.2s;
+            font-family: 'Roboto', sans-serif;
+        }
+        #reset-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -344,13 +339,12 @@
             <div id="player"></div>
             <div id="finish-line"></div>
         </div>
-        
-        <div id="controls-wrapper">
-            <div id="joystick" aria-hidden="false">
-                <div id="joystick-knob"></div>
-            </div>
-            <div id="jump-button" role="button" aria-label="Nhảy">NHẢY</div>
+        <!-- Left-side touch joystick for movement -->
+        <div id="joystick" aria-hidden="false">
+            <div id="joystick-knob"></div>
         </div>
+        <!-- Right-side jump button for mobile -->
+        <div id="jump-button" role="button" aria-label="Nhảy">NHẢY</div>
     </div>
 
     <div id="game-info">
@@ -358,7 +352,7 @@
         <div id="level-display">Màn: 1</div>
         <button id="reset-character" onclick="resetCharacter()">Reset Nhân Vật</button>
         <div id="controls-desc">
-            Hướng dẫn: A / D hoặc ← / → để di chuyển. Space hoặc chạm nút "NHẢY" để nhảy.
+            Hướng dẫn: A / D hoặc ← / → để di chuyển. Space hoặc chạm nút "NHẢY" để nhảy. Nhấn "Reset Nhân Vật" để quay về nhân vật mặc định.
         </div>
     </div>
     <div id="game-message">
@@ -367,6 +361,16 @@
     </div>
 
     <script>
+                /*
+                 Image notes:
+                 - For best visual results, use images with transparent backgrounds (PNG with alpha) for obstacles
+                     and moving sprites. If your files have white/solid backgrounds, remove them with tools such as:
+                     * Photopea (photopea.com) — free online editor: open image -> Select subject / Magic cut -> export PNG
+                     * remove.bg (remove.bg) — automatic background removal
+                 - Filenames used in this level: bongbong.png, cuncute.png, phancute.png, hopbian.png, ongnuoc.png
+                 - Place these files in the same folder as `shipperz.html` and refresh the page.
+                 - If an image still shows a solid background, provide a transparent version and I will wire it in.
+                */
         const player = document.getElementById('player');
         const gameContainer = document.getElementById('game-container');
         const gameWorld = document.getElementById('game-world');
@@ -374,11 +378,6 @@
         const gameMessage = document.getElementById('game-message');
         const timeDisplay = document.getElementById('time-display');
         const levelDisplay = document.getElementById('level-display');
-        const jumpButton = document.getElementById('jump-button');
-        const joystick = document.getElementById('joystick');
-        const joystickKnob = document.getElementById('joystick-knob');
-        const controlsWrapper = document.getElementById('controls-wrapper');
-        const controlsDesc = document.getElementById('controls-desc');
         
         // Theo dõi loại nhân vật và level game
         let currentCharacter = 'nhanvat.png';
@@ -386,25 +385,57 @@
         const MAX_LEVEL = 5;
         const TIME_LIMIT = 60000; // 60 seconds in milliseconds
         
+        // Mapping các nhân vật theo level
         const characterProgression = {
-            1: 'nhanvat.png', 2: 'chuquan.png', 3: 'cogiao.png', 4: 'bodoi.png', 5: 'bacsi.png'
+            1: 'nhanvat.png',
+            2: 'chuquan.png',
+            3: 'cogiao.png',
+            4: 'bodoi.png',
+            5: 'bacsi.png'
         };
 
-        // Biến vật lý và trạng thái
+        // Hàm reset nhân vật về ban đầu
+        function resetCharacter() {
+            currentCharacter = 'nhanvat.png';
+            gameLevel = 1;
+            localStorage.setItem('currentCharacter', currentCharacter);
+            localStorage.setItem('gameLevel', gameLevel);
+            player.style.backgroundImage = `url('${currentCharacter}')`;
+            updateLevelDisplay();
+            resetTimer();
+        }
+
+        function updateLevelDisplay() {
+            levelDisplay.textContent = `Màn: ${gameLevel}`;
+        }
+
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval;
+
+        let winHistory = JSON.parse(localStorage.getItem('gameWinHistory')) || [];
+
         let playerX = 50;
         let playerY = 0;
         const playerBaseWidth = 60;
         const playerBaseHeight = 60;
         let playerActualWidth = playerBaseWidth;
         let playerActualHeight = playerBaseHeight;
-        const hitboxXOffset = 10;
-        const hitboxYOffset = 5;
+
+        const hitboxXOffset = 10; // Khoảng cách từ cạnh player đến hitbox (ngang)
+        const hitboxYOffset = 5; // Khoảng cách từ đáy player đến hitbox (dọc)
+
+        // defaultGroundY KHÔNG CÒN ĐƯỢC DÙNG ĐỂ CHẶN RƠI NỮA
+        const defaultGroundY = 0; 
+
+        // NGƯỠNG RƠI VỰC: Đã để là -100 như bạn muốn kiểm tra.
         const deathFallThreshold = -100; 
+
         let isJumping = false;
         let isMovingLeft = false;
         let isMovingRight = false;
         let isGameOver = false;
-        let isOnPlatform = false; 
+        let isOnPlatform = false; // Biến global để xác định có đang đứng trên platform hay không
 
         const moveAcceleration = 1.2;
         const friction = 0.8;
@@ -423,11 +454,7 @@
 
         let gameElements = [];
         let movingObstacles = [];
-        
-        let startTime = 0;
-        let winHistory = JSON.parse(localStorage.getItem('gameWinHistory')) || [];
 
-        // --- HÀM TẠO LEVEL VÀ CẬP NHẬT GAME ---
         function createLevel(levelData) {
             gameElements.forEach(el => el.remove());
             gameElements = [];
@@ -438,6 +465,9 @@
             finishLine.style.width = levelData.finishLine.width + 'px';
             finishLine.style.height = levelData.finishLine.height + 'px';
             
+            // Mảng để lưu các platform xuyên qua được
+            window.passthroughPlatforms = [];
+
             levelData.elements.forEach(data => {
                 const el = document.createElement('div');
                 el.classList.add(data.type);
@@ -448,304 +478,155 @@
                 gameWorld.appendChild(el);
                 gameElements.push(el);
 
-                // ... (Logic apply image và moving obstacle như code gốc) ...
-                 if (data.image) {
-                     if (data.type === 'hazard' && /phancute/i.test(data.image)) {
-                         const img = document.createElement('img');
-                         img.src = data.image;
-                         img.alt = '';
-                         img.style.position = 'absolute';
-                         img.style.left = '50%';
-                         img.style.transform = 'translateX(-50%)';
-                         img.style.bottom = '0';
-                         img.style.width = '80%';
-                         img.style.height = 'auto';
-                         img.style.pointerEvents = 'none';
-                         img.style.userSelect = 'none';
-                         el.appendChild(img);
-                         el.style.backgroundImage = '';
-                         el.style.backgroundSize = 'contain';
-                     } else {
-                         el.style.backgroundImage = `url('${data.image}')`;
-                         el.style.backgroundRepeat = 'no-repeat';
-                         el.style.backgroundPosition = 'center bottom';
-                         if (data.type === 'moving-obstacle' || data.type === 'hazard') {
-                             el.style.backgroundSize = 'contain';
-                         } else {
-                             if (data.type === 'platform') {
-                                 el.style.backgroundSize = 'contain';
-                             } else {
-                                 el.style.backgroundSize = `${data.width}px ${data.height}px`;
-                             }
-                         }
-                     }
-                     if (data.type === 'hazard' || data.type === 'platform') {
-                         el.style.border = 'none';
-                         el.style.backgroundColor = 'transparent';
-                     }
-                 }
+                // Apply per-element images/styles when provided in level data
+                if (data.image) {
+                    // Special-case: for phancute images we insert an <img> inside the element so we can
+                    // scale the visible sprite independently of the collision box (keeps collision precise)
+                    if (data.type === 'hazard' && /phancute/i.test(data.image)) {
+                        // create an img element for fine-grained control
+                        const img = document.createElement('img');
+                        img.src = data.image;
+                        img.alt = '';
+                        img.style.position = 'absolute';
+                        img.style.left = '50%';
+                        img.style.transform = 'translateX(-50%)';
+                        img.style.bottom = '0';
+                        img.style.width = '80%'; // visible sprite will be 80% of container width
+                        img.style.height = 'auto';
+                        img.style.pointerEvents = 'none';
+                        img.style.userSelect = 'none';
+                        el.appendChild(img);
+                        // keep container visually empty (no background)
+                        el.style.backgroundImage = '';
+                        el.style.backgroundSize = 'contain';
+                    } else {
+                        el.style.backgroundImage = `url('${data.image}')`;
+                        el.style.backgroundRepeat = 'no-repeat';
+                        el.style.backgroundPosition = 'center bottom';
+                        // Preserve aspect ratio for moving obstacles and hazards so sprites don't distort
+                        if (data.type === 'moving-obstacle' || data.type === 'hazard') {
+                            el.style.backgroundSize = 'contain';
+                        } else {
+                            // Keep platform images looking clean with contain, others fill
+                            if (data.type === 'platform') {
+                                el.style.backgroundSize = 'contain';
+                            } else {
+                                el.style.backgroundSize = `${data.width}px ${data.height}px`;
+                            }
+                        }
+                    }
+                    // Keep border-free for hazards and platforms
+                    if (data.type === 'hazard' || data.type === 'platform') {
+                        el.style.border = 'none';
+                        el.style.backgroundColor = 'transparent';
+                    }
+                }
 
-                 if (data.type === 'moving-obstacle') {
-                     movingObstacles.push({
-                         element: el,
-                         initialLeft: data.left,
-                         range: data.range,
-                         speed: data.speed,
-                         direction: 1,
-                         pushForce: data.pushForce || 8
-                     });
-                 }
+                if (data.type === 'moving-obstacle') {
+                    movingObstacles.push({
+                        element: el,
+                        initialLeft: data.left,
+                        range: data.range,
+                        speed: data.speed,
+                        direction: 1,
+                        pushForce: data.pushForce || 8
+                    });
+                }
             });
         }
-        
-        // Dữ liệu Level 1 (Giữ nguyên)
+
         const level1Data = {
             worldWidth: 2500,
             finishLine: { left: 2450, bottom: 50, width: 50, height: 150 },
             elements: [
-                { type: 'platform', left: 0, width: 600, height: 50, bottom: 0, image: 'thungrac.png' }, 
-                { type: 'platform', left: 700, width: 400, height: 50, bottom: 0, image: 'thungrac.png' },
-                { type: 'platform', left: 1200, width: 400, height: 50, bottom: 0, image: 'thungrac.png' },
-                { type: 'platform', left: 1700, width: 300, height: 50, bottom: 0, image: 'thungrac.png' },
-                { type: 'platform', left: 2100, width: 400, height: 50, bottom: 0, image: 'thungrac.png' },
+                // Vỉa hè chính (chia đoạn để tạo hố cống thực sự)
+                { type: 'platform', left: 0, width: 600, height: 50, bottom: 0, image: 'thungrac.png' },  /* 0..600 */
+                { type: 'platform', left: 700, width: 400, height: 50, bottom: 0, image: 'thungrac.png' },/* 700..1100 */
+                { type: 'platform', left: 1200, width: 400, height: 50, bottom: 0, image: 'thungrac.png' },/*1200..1600*/
+                { type: 'platform', left: 1700, width: 300, height: 50, bottom: 0, image: 'thungrac.png' },/*1700..2000*/
+                { type: 'platform', left: 2100, width: 400, height: 50, bottom: 0, image: 'thungrac.png' },/*2100..2500*/
 
+                // Hố cống (platform xuyên qua được) - vị trí tách xa hơn để không chồng chéo với hazard
                 { type: 'passthrough-platform', left: 600, width: 100, height: 40, bottom: 0, image: 'ongnuoc.png' },
                 { type: 'passthrough-platform', left: 1100, width: 100, height: 40, bottom: 0, image: 'ongnuoc.png' },
                 { type: 'passthrough-platform', left: 1600, width: 100, height: 40, bottom: 0, image: 'ongnuoc.png' },
                 { type: 'passthrough-platform', left: 2000, width: 100, height: 40, bottom: 0, image: 'ongnuoc.png' },
 
+                // Các vật cản nguy hiểm (có thể là ổ gà, vũng nước, etc.)
+                // Hazards spaced away from holes
                 { type: 'hazard', left: 350, width: 80, height: 80, bottom: 50, image: 'cuncute.png' },
                 { type: 'hazard', left: 900, width: 50, height: 50, bottom: 50, image: 'phancute.png' },
                 { type: 'hazard', left: 1500, width: 50, height: 50, bottom: 50, image: 'phancute.png' },
                 { type: 'hazard', left: 2300, width: 50, height: 50, bottom: 50, image: 'phancute.png' },
 
+                // Vật thể di chuyển (có thể là người đi bộ, xe đạp, etc.)
+                // Use bongbong.png for moving obstacles; shrink the container so the sprite appears smaller
                 { type: 'moving-obstacle', left: 500, width: 60, height: 60, bottom: 60, range: 120, speed: 1.2, pushForce: 8, image: 'bongbong.png' },
                 { type: 'moving-obstacle', left: 1300, width: 60, height: 60, bottom: 60, range: 160, speed: 1.0, pushForce: 10, image: 'bongbong.png' },
                 { type: 'moving-obstacle', left: 2100, width: 60, height: 60, bottom: 60, range: 120, speed: 1.5, pushForce: 9, image: 'bongbong.png' }
             ]
         };
 
-        function updateTimer() { /* ... (Giữ nguyên logic updateTimer) ... */
-             if (isGameOver) return;
-             const currentTime = performance.now();
-             const timeElapsed = currentTime - startTime;
-             const timeRemaining = TIME_LIMIT - timeElapsed;
-             
-             if (timeRemaining <= 0) {
-                 endGame('Hết thời gian! Bạn đã thua.');
-                 return;
-             }
 
-             const seconds = Math.ceil(timeRemaining / 1000); 
-             timeDisplay.textContent = `Thời gian: ${seconds}s`;
+        function updateTimer() {
+            if (isGameOver) return;
+            const currentTime = performance.now();
+            const timeElapsed = currentTime - startTime;
+            const timeRemaining = TIME_LIMIT - timeElapsed;
+            
+            if (timeRemaining <= 0) {
+                endGame('Hết thời gian! Bạn đã thua.');
+                return;
+            }
 
-             if (seconds <= 10) {
-                 timeDisplay.style.color = seconds % 2 === 0 ? 'red' : 'white';
-             }
-        }
-        function resetTimer() { /* ... (Giữ nguyên logic resetTimer) ... */
-             startTime = performance.now();
-             timeDisplay.style.color = 'white';
-        }
-        function updatePlayerPosition() { /* ... (Giữ nguyên logic updatePlayerPosition) ... */
-             player.style.left = playerX + 'px';
-             player.style.bottom = playerY + 'px';
+            const seconds = Math.ceil(timeRemaining / 1000); // Round up to give player full second
+            timeDisplay.textContent = `Thời gian: ${seconds}s`;
 
-             if (xVelocity < 0 && facingRight) {
-                 player.classList.add('flipped');
-                 facingRight = false;
-             } else if (xVelocity > 0 && !facingRight) {
-                 player.classList.remove('flipped');
-                 facingRight = true;
-             }
-        }
-
-        function jump() {
-            if (!isJumping && isOnPlatform) { 
-                isJumping = true;
-                yVelocity = jumpStrength;
-                isOnPlatform = false; 
+            // Thêm hiệu ứng nhấp nháy khi gần hết giờ
+            if (seconds <= 10) {
+                timeDisplay.style.color = seconds % 2 === 0 ? 'red' : 'white';
             }
         }
 
-        function getElementRect(element) { /* ... (Giữ nguyên logic getElementRect) ... */
-             const left = parseInt(element.style.left);
-             const bottom = parseInt(element.style.bottom);
-             const width = element.offsetWidth;
-             const height = element.offsetHeight;
-             const right = left + width;
-             const top = bottom + height;
-             return { left, right, bottom, top, width, height };
+        function resetTimer() {
+            startTime = performance.now();
+            timeDisplay.style.color = 'white';
         }
 
-        function checkCollisionsX() { /* ... (Giữ nguyên logic checkCollisionsX) ... */
-             if (isGameOver) return;
-             const playerHitbox = {
-                 left: playerX + hitboxXOffset,
-                 right: playerX + playerActualWidth - hitboxXOffset,
-                 bottom: playerY + hitboxYOffset,
-                 top: playerY + playerActualHeight
-             };
+        function updatePlayerPosition() {
+            player.style.left = playerX + 'px';
+            player.style.bottom = playerY + 'px';
 
-             gameElements.forEach(element => {
-                 if (isGameOver) return;
-                 const elementRect = getElementRect(element);
-
-                 const horizontalOverlap = playerHitbox.left < elementRect.right && playerHitbox.right > elementRect.left;
-                 const verticalOverlap = playerHitbox.top > elementRect.bottom && playerHitbox.bottom < elementRect.top;
-
-                 if (horizontalOverlap && verticalOverlap) {
-                     if (element.classList.contains('hazard')) {
-                         endGame('Bạn đã chạm chướng ngại vật nguy hiểm!');
-                         if (isGameOver) return;
-                     }
-
-                     if (element.classList.contains('moving-obstacle')) {
-                         const movingObs = movingObstacles.find(obs => obs.element === element);
-                         if (movingObs) {
-                             const playerCenter = playerX + playerActualWidth / 2;
-                             const obstacleCenter = elementRect.left + elementRect.width / 2;
-                             const pushForce = movingObs.speed * (movingObs.pushForce || 8);
-
-                             if (playerCenter < obstacleCenter) {
-                                 xVelocity = -pushForce;
-                                 playerX = elementRect.left - playerActualWidth - 5;
-                             } else {
-                                 xVelocity = pushForce;
-                                 playerX = elementRect.right + 5;
-                             }
-                             
-                             if (yVelocity <= 0) {
-                                 yVelocity = 5;
-                             }
-                         }
-                     } else if (element.classList.contains('platform') || element.classList.contains('obstacle')) {
-                         if (xVelocity > 0) {
-                             playerX = elementRect.left - (playerActualWidth - hitboxXOffset);
-                             xVelocity = 0;
-                         }
-                         else if (xVelocity < 0) {
-                             playerX = elementRect.right - hitboxXOffset;
-                             xVelocity = 0;
-                         }
-                     }
-                 }
-             });
+            if (xVelocity < 0 && facingRight) {
+                player.classList.add('flipped');
+                facingRight = false;
+            } else if (xVelocity > 0 && !facingRight) {
+                player.classList.remove('flipped');
+                facingRight = true;
+            }
         }
 
-        function checkCollisionsY(previousPlayerY) { /* ... (Giữ nguyên logic checkCollisionsY) ... */
-             if (isGameOver) return;
-             let playerCurrentlyOnPlatform = false;
-             let newPlayerY = playerY;
-
-             // Kiểm tra va chạm từ dưới lên (đụng trần)
-             if (yVelocity > 0) {
-                 const playerTopY = previousPlayerY + playerActualHeight;
-                 const playerFutureTopY = playerY + playerActualHeight;
-
-                 gameElements.forEach(element => {
-                     if (element.classList.contains('platform') || element.classList.contains('obstacle') || element.classList.contains('moving-obstacle')) {
-                         const elementRect = getElementRect(element);
-                         
-                         const horizontalOverlap = (
-                             playerX + hitboxXOffset < elementRect.right &&
-                             playerX + playerActualWidth - hitboxXOffset > elementRect.left
-                         );
-
-                         if (horizontalOverlap && 
-                             playerFutureTopY >= elementRect.bottom && 
-                             playerTopY <= elementRect.bottom) {
-                             
-                             if (element.classList.contains('hazard')) {
-                                 endGame('Bạn đã chạm chướng ngại vật nguy hiểm!');
-                                 return;
-                             }
-                             
-                             newPlayerY = elementRect.bottom - playerActualHeight;
-                             yVelocity = 0;
-                         }
-                     }
-                 });
-             }
-
-             // Kiểm tra va chạm từ trên xuống (đứng trên platform)
-             let highestPlatformY = -Infinity;
-             let foundPlatformBelow = false;
-
-             gameElements.forEach(element => {
-                 if (isGameOver) return;
-                 if (element.classList.contains('platform') || element.classList.contains('obstacle') || element.classList.contains('moving-obstacle')) {
-                     const elementRect = getElementRect(element);
-
-                     const horizontalOverlap = (
-                         playerX + hitboxXOffset < elementRect.right &&
-                         playerX + playerActualWidth - hitboxXOffset > elementRect.left
-                     );
-
-                     const playerBottom = playerY + hitboxYOffset;
-                     const previousPlayerBottom = previousPlayerY + hitboxYOffset;
-                     
-                     if (horizontalOverlap &&
-                         yVelocity <= 0 && 
-                         playerBottom <= elementRect.top + 5 && 
-                         previousPlayerBottom >= elementRect.top - 5) { 
-
-                         if (element.classList.contains('hazard')) {
-                             endGame('Bạn đã chạm chướng ngại vật nguy hiểm!');
-                             if (isGameOver) return;
-                         }
-
-                         if (element.classList.contains('moving-obstacle') && elementRect.top > highestPlatformY) {
-                            // Nếu đang đứng trên vật thể di chuyển, di chuyển theo nó
-                            const movingObs = movingObstacles.find(obs => obs.element === element);
-                            if (movingObs) {
-                                playerX += movingObs.direction * movingObs.speed;
-                            }
-                         }
-
-                         if (elementRect.top > highestPlatformY) {
-                             highestPlatformY = elementRect.top;
-                             foundPlatformBelow = true;
-                         }
-                     }
-                 }
-             });
-
-             if (foundPlatformBelow) {
-                 newPlayerY = highestPlatformY - hitboxYOffset;
-                 yVelocity = 0;
-                 isJumping = false;
-                 playerCurrentlyOnPlatform = true;
-             } else {
-                 playerCurrentlyOnPlatform = false;
-             }
-
-             playerY = newPlayerY;
-             isOnPlatform = playerCurrentlyOnPlatform; 
+        function jump() {
+            // Kiểm tra isOnPlatform thay vì isJumping, để cho phép nhảy lại ngay khi chạm đất
+            if (!isJumping && isOnPlatform) { 
+                isJumping = true;
+                yVelocity = jumpStrength;
+                isOnPlatform = false; // Khi nhảy, không còn trên platform nữa
+            }
         }
 
-
-        // ... (Giữ nguyên các hàm updateMovingObstacles, checkFinishLine, endGame, resetGame, updateLevelDisplay) ...
-        function updateMovingObstacles() {
-            if (isGameOver) return;
-            movingObstacles.forEach(obs => {
-                const currentLeft = parseInt(obs.element.style.left);
-                
-                obs.element.style.left = currentLeft + obs.direction * obs.speed + 'px';
-                
-                const newLeft = parseInt(obs.element.style.left);
-                
-                if (obs.direction > 0 && newLeft >= obs.initialLeft + obs.range) {
-                    obs.direction = -1;
-                } else if (obs.direction < 0 && newLeft <= obs.initialLeft) {
-                    obs.direction = 1;
-                }
-            });
+        function getElementRect(element) {
+            const left = parseInt(element.style.left);
+            const bottom = parseInt(element.style.bottom);
+            const width = element.offsetWidth;
+            const height = element.offsetHeight;
+            const right = left + width;
+            const top = bottom + height;
+            return { left, right, bottom, top, width, height };
         }
 
-        function checkFinishLine() {
-            if (isGameOver) return;
-            const finishRect = getElementRect(finishLine);
+        function checkCollisionsX() {
+            if (isGameOver) return; // don't process collisions when game ended
             const playerHitbox = {
                 left: playerX + hitboxXOffset,
                 right: playerX + playerActualWidth - hitboxXOffset,
@@ -753,341 +634,579 @@
                 top: playerY + playerActualHeight
             };
 
-            const horizontalOverlap = playerHitbox.left < finishRect.right && playerHitbox.right > finishRect.left;
-            const verticalOverlap = playerHitbox.top > finishRect.bottom && playerHitbox.bottom < finishRect.top;
+            gameElements.forEach(element => {
+                if (isGameOver) return; // stop processing further elements if game ended during loop
+                const elementRect = getElementRect(element);
 
-            if (horizontalOverlap && verticalOverlap) {
-                endGame('Hoàn thành Màn ' + gameLevel + '!', true);
+                const horizontalOverlap = playerHitbox.left < elementRect.right && playerHitbox.right > elementRect.left;
+                const verticalOverlap = playerHitbox.top > elementRect.bottom && playerHitbox.bottom < elementRect.top;
+
+                if (horizontalOverlap && verticalOverlap) {
+                    if (element.classList.contains('hazard')) {
+                        endGame('Bạn đã chạm chướng ngại vật nguy hiểm!');
+                        if (isGameOver) return; // ensure we stop processing after calling endGame
+                    }
+
+                    if (element.classList.contains('moving-obstacle')) {
+                        // Tìm vật thể di chuyển trong mảng movingObstacles
+                        const movingObs = movingObstacles.find(obs => obs.element === element);
+                        if (movingObs) {
+                            // Xác định hướng va chạm và đẩy lùi
+                            const playerCenter = playerX + playerActualWidth / 2;
+                            const obstacleCenter = elementRect.left + elementRect.width / 2;
+                            const pushForce = movingObs.speed * (movingObs.pushForce || 8); // Lực đẩy mặc định là 8
+
+                            if (playerCenter < obstacleCenter) {
+                                // Đẩy sang trái
+                                xVelocity = -pushForce;
+                                playerX = elementRect.left - playerActualWidth - 5; // Thêm khoảng cách an toàn
+                            } else {
+                                // Đẩy sang phải
+                                xVelocity = pushForce;
+                                playerX = elementRect.right + 5; // Thêm khoảng cách an toàn
+                            }
+                            
+                            // Thêm một chút độ nảy lên khi va chạm
+                            if (yVelocity <= 0) {
+                                yVelocity = 5;
+                            }
+                        }
+                    } else if (element.classList.contains('platform') || element.classList.contains('obstacle')) {
+                        if (xVelocity > 0) {
+                            playerX = elementRect.left - (playerActualWidth - hitboxXOffset);
+                            xVelocity = 0;
+                        }
+                        else if (xVelocity < 0) {
+                            playerX = elementRect.right - hitboxXOffset;
+                            xVelocity = 0;
+                        }
+                    }
+                }
+            });
+        }
+
+        function checkCollisionsY(previousPlayerY) {
+            if (isGameOver) return; // skip Y-collision processing if game already ended
+            let playerCurrentlyOnPlatform = false;
+            let newPlayerY = playerY;
+
+            // Kiểm tra va chạm từ dưới lên (đụng trần)
+            if (yVelocity > 0) {
+                const playerTopY = previousPlayerY + playerActualHeight;
+                const playerFutureTopY = playerY + playerActualHeight;
+
+                gameElements.forEach(element => {
+                    if (element.classList.contains('platform') || element.classList.contains('obstacle') || element.classList.contains('moving-obstacle')) {
+                        const elementRect = getElementRect(element);
+                        
+                        // Cải thiện phát hiện va chạm ngang
+                        const horizontalOverlap = (
+                            playerX + hitboxXOffset < elementRect.right &&
+                            playerX + playerActualWidth - hitboxXOffset > elementRect.left
+                        );
+
+                        // Cải thiện phát hiện va chạm khi nhảy lên
+                        if (horizontalOverlap && 
+                            playerFutureTopY >= elementRect.bottom && 
+                            playerTopY <= elementRect.bottom) {
+                            
+                            if (element.classList.contains('hazard')) {
+                                endGame('Bạn đã chạm chướng ngại vật nguy hiểm!');
+                                return;
+                            }
+                            
+                            newPlayerY = elementRect.bottom - playerActualHeight;
+                            yVelocity = 0;
+                        }
+                    }
+                });
+            }
+
+            // Kiểm tra va chạm từ trên xuống (đứng trên platform)
+            let highestPlatformY = -Infinity;
+            let foundPlatformBelow = false;
+
+            gameElements.forEach(element => {
+                if (isGameOver) return; // stop processing if game ended
+                if (element.classList.contains('platform') || element.classList.contains('obstacle') || element.classList.contains('moving-obstacle')) {
+                    const elementRect = getElementRect(element);
+
+                    // Cải thiện phát hiện va chạm ngang với hitbox chính xác hơn
+                    const horizontalOverlap = (
+                        playerX + hitboxXOffset < elementRect.right &&
+                        playerX + playerActualWidth - hitboxXOffset > elementRect.left
+                    );
+
+                    // Cải thiện logic phát hiện va chạm với platform
+                    const playerBottom = playerY + hitboxYOffset;
+                    const previousPlayerBottom = previousPlayerY + hitboxYOffset;
+                    
+                    if (horizontalOverlap &&
+                        yVelocity <= 0 && // Đang rơi hoặc đứng yên
+                        playerBottom <= elementRect.top + 5 && // Thêm một khoảng dung sai nhỏ
+                        previousPlayerBottom >= elementRect.top - 5) { // Thêm một khoảng dung sai nhỏ
+
+                        if (element.classList.contains('hazard')) {
+                            endGame('Bạn đã chạm chướng ngại vật nguy hiểm!');
+                            if (isGameOver) return; // Nếu game đã over thì dừng ngay
+                        }
+
+                        // Nếu tìm thấy một platform hợp lệ để đứng, cập nhật highestPlatformY
+                        // Lấy platform cao nhất mà player có thể đứng lên
+                        if (elementRect.top > highestPlatformY) {
+                            highestPlatformY = elementRect.top;
+                            foundPlatformBelow = true;
+                        }
+                    }
+                }
+            });
+
+            // Sau khi duyệt qua tất cả các phần tử, mới quyết định vị trí cuối cùng của playerY
+            if (foundPlatformBelow) {
+                newPlayerY = highestPlatformY - hitboxYOffset;
+                yVelocity = 0;
+                isJumping = false;
+                playerCurrentlyOnPlatform = true;
+            } else {
+                // Nếu không tìm thấy platform nào bên dưới, player đang rơi tự do.
+                playerCurrentlyOnPlatform = false;
+            }
+
+            playerY = newPlayerY;
+            isOnPlatform = playerCurrentlyOnPlatform; // Cập nhật biến global isOnPlatform
+
+            // --- DEBUG LOGS (Giữ nguyên hoặc cải thiện) ---
+            console.log(`--- Y-COLLISION DEBUG ---`);
+            console.log(`playerY: ${playerY.toFixed(2)}, hitboxYOffset: ${hitboxYOffset}, defaultGroundY: ${defaultGroundY}, deathFallThreshold: ${deathFallThreshold}`);
+            console.log(`yVelocity: ${yVelocity.toFixed(2)}, isJumping: ${isJumping}, isOnPlatform: ${isOnPlatform}, isGameOver: ${isGameOver}`);
+            console.log(`Đáy hitbox player: ${playerY + hitboxYOffset}`);
+            
+            const isFallingIntoDeathZone = (playerY + hitboxYOffset < deathFallThreshold);
+            
+            if (isFallingIntoDeathZone) {
+                console.log("-> Đáy hitbox thấp hơn ngưỡng rơi vực!");
+            } else {
+                console.log("-> Đáy hitbox vẫn nằm trên ngưỡng rơi vực."); 
+            }
+
+            if (!isOnPlatform) {
+                console.log("-> Không đứng trên platform!");
+            }
+            if (!isGameOver) {
+                console.log("-> Game chưa kết thúc!");
+            }
+            console.log("Kết quả điều kiện rơi vực:", isFallingIntoDeathZone);
+            console.log(`-------------------------`);
+            // --- END DEBUG LOGS ---
+
+            // Kiểm tra rơi xuống vực cuối cùng - Đặt sau khi đã xử lý va chạm Y
+            if (isFallingIntoDeathZone && !isGameOver) { 
+                console.log("KÍCH HOẠT ENDGAME DO RƠI VỰC!"); 
+                endGame('Bạn đã rơi xuống vực!');
+                return; // Thoát khỏi hàm để tránh các tính toán không cần thiết sau khi game over
             }
         }
 
-        function endGame(message, isWin = false) {
-            if (isGameOver) return;
+
+        function checkWin() {
+            const finishLineRect = getElementRect(finishLine);
+
+            const playerHitbox = {
+                left: playerX + hitboxXOffset,
+                right: playerX + playerActualWidth - hitboxXOffset,
+                bottom: playerY + hitboxYOffset,
+                top: playerY + playerActualHeight
+            };
+
+            if (playerHitbox.left < finishLineRect.right &&
+                playerHitbox.right > finishLineRect.left &&
+                playerHitbox.bottom < finishLineRect.top &&
+                playerHitbox.top > finishLineRect.bottom ) {
+
+                if (!isGameOver) {
+                    endGame('Bạn đã chiến thắng!');
+                }
+            }
+        }
+
+        function endGame(message) {
             isGameOver = true;
             clearInterval(timerInterval);
 
-            gameMessage.innerHTML = '';
-            const p = document.createElement('p');
-            p.textContent = message;
-            gameMessage.appendChild(p);
+            let finalMessage = `<p>${message}</p>`;
+            let newRecord = false;
 
-            const resetButton = document.createElement('button');
-            resetButton.id = 'reset-button';
-            resetButton.textContent = isWin ? 'Tiếp Tục' : 'Chơi Lại';
-            gameMessage.appendChild(resetButton);
-
-            if (isWin) {
-                const timeTaken = TIME_LIMIT - (performance.now() - startTime);
-                const scoreEntry = { level: gameLevel, time: Math.ceil(timeTaken / 1000) };
-                winHistory.push(scoreEntry);
+            if (message.includes('chiến thắng')) {
+                const finalTime = elapsedTime;
+                winHistory.push(finalTime);
+                winHistory.sort((a, b) => a - b);
+                if (winHistory.length > 5) {
+                    winHistory = winHistory.slice(0, 5);
+                }
                 localStorage.setItem('gameWinHistory', JSON.stringify(winHistory));
 
-                const nextLevel = gameLevel < MAX_LEVEL;
-                if (nextLevel) {
-                    gameLevel++;
-                } else {
-                    gameMessage.querySelector('p').textContent = 'Chúc mừng! Bạn đã hoàn thành tất cả các màn!';
-                    resetButton.textContent = 'Chơi Lại Từ Đầu';
+                const minutes = Math.floor(finalTime / 60000);
+                const seconds = Math.floor((elapsedTime % 60000) / 1000);
+                const milliseconds = Math.floor((elapsedTime % 1000) / 10);
+                const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+
+                finalMessage += `<p>Thời gian của bạn: ${formattedTime}</p>`;
+
+                // Check for new record by comparing with the best time in history
+                if (winHistory.length > 0 && finalTime === winHistory[0]) {
+                    newRecord = true;
                 }
 
-                resetButton.onclick = () => {
-                    if (!nextLevel) {
-                        gameLevel = 1; // Reset về màn 1
-                        currentCharacter = characterProgression[1];
-                    } else {
-                        currentCharacter = characterProgression[gameLevel];
-                    }
-                    localStorage.setItem('gameLevel', gameLevel);
+                if (newRecord) {
+                    finalMessage += `<p>Kỷ lục mới!</p>`;
+                }
+
+                // Thay đổi nhân vật khi chiến thắng
+                if (gameLevel < MAX_LEVEL) {
+                    gameLevel++;
+                    currentCharacter = characterProgression[gameLevel];
+                    finalMessage += `<p>Chúc mừng! Bạn đã mở khóa nhân vật mới!</p>`;
+                    finalMessage += `<p>Nhân vật tiếp theo: ${currentCharacter}</p>`;
+                    player.style.backgroundImage = `url('${currentCharacter}')`;
+                    // Lưu trạng thái nhân vật
                     localStorage.setItem('currentCharacter', currentCharacter);
-                    resetGame();
-                };
+                    localStorage.setItem('gameLevel', gameLevel);
+                } else {
+                    finalMessage += `<p>Chúc mừng! Bạn đã hoàn thành tất cả các màn chơi!</p>`;
+                }
+            }
+
+            finalMessage += '<p>Lịch sử chiến thắng:</p><ul>';
+            if (winHistory.length === 0) {
+                finalMessage += '<li>Chưa có kỷ lục nào.</li>';
             } else {
-                resetButton.onclick = resetGame;
+                winHistory.forEach((time, index) => {
+                    const minutes = Math.floor(time / 60000);
+                    const seconds = Math.floor((time % 60000) / 1000);
+                    const milliseconds = Math.floor((time % 1000) / 10);
+                    const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+                    finalMessage += `<li>${index + 1}. ${formattedTime}</li>`;
+                });
             }
+            finalMessage += '</ul>';
 
+
+            finalMessage += '<button id="reset-button">Chơi Lại</button>';
+            gameMessage.innerHTML = finalMessage;
             gameMessage.style.display = 'block';
-        }
 
-        function resetGame() {
-            isGameOver = false;
-            playerX = 50;
-            playerY = 0;
-            xVelocity = 0;
-            yVelocity = 0;
-            isJumping = false;
-            isOnPlatform = false;
-            cameraX = 0;
-            
-            player.style.backgroundImage = `url('${currentCharacter}')`;
-            updateLevelDisplay();
-            createLevel(level1Data); // Tạm thời chỉ dùng level 1
-            resetCharacterToStart();
-            gameMessage.style.display = 'none';
-            resetTimer();
-            timerInterval = setInterval(updateTimer, 100);
-            requestAnimationFrame(gameLoop);
-        }
-
-        function resetCharacterToStart() {
-            // Đặt lại nhân vật về vị trí ban đầu của level 1
-            playerX = 50;
-            playerY = 0;
-            xVelocity = 0;
-            yVelocity = 0;
-            isJumping = false;
-            isOnPlatform = false;
-            updatePlayerPosition();
-            updateCamera(); // Cập nhật camera ngay lập tức
-        }
-        
-        function updateLevelDisplay() {
-            levelDisplay.textContent = `Màn: ${gameLevel}`;
-        }
-        
-        // Cần giữ nguyên hàm này để nút trên HTML hoạt động
-        function resetCharacter() {
-            currentCharacter = 'nhanvat.png';
-            gameLevel = 1;
-            localStorage.setItem('currentCharacter', currentCharacter);
-            localStorage.setItem('gameLevel', gameLevel);
-            player.style.backgroundImage = `url('${currentCharacter}')`;
-            updateLevelDisplay();
-            resetGame();
-        }
-        // -----------------------------------------------
-
-        // --- CAMERA VÀ GAME LOOP ---
-        function updateCamera() {
-            const containerWidth = gameContainer.offsetWidth;
-            const worldWidth = 2500; 
-
-            // Xác định vị trí camera cần di chuyển (căn giữa player)
-            let targetCameraX = playerX - containerWidth / 2 + playerActualWidth / 2;
-
-            // Giới hạn camera ở biên trái (0)
-            if (targetCameraX < 0) {
-                targetCameraX = 0;
+            // Gỡ bỏ và thêm lại event listener để tránh việc gắn nhiều lần
+            const existingResetButton = document.querySelector('#game-message #reset-button');
+            if (existingResetButton) {
+                existingResetButton.removeEventListener('click', initializeGame);
             }
+            document.querySelector('#game-message #reset-button').addEventListener('click', initializeGame);
 
-            // Giới hạn camera ở biên phải (World Width - Container Width)
-            const maxCameraX = worldWidth - containerWidth;
-            if (targetCameraX > maxCameraX) {
-                targetCameraX = maxCameraX;
-            }
-
-            cameraX = targetCameraX;
-
-            // Di chuyển game-world ngược lại
-            gameWorld.style.transform = `translateX(${-cameraX}px)`;
+            cancelAnimationFrame(window.animationFrameId);
         }
 
         function gameLoop(currentTime) {
             if (isGameOver) return;
 
-            const deltaTime = currentTime - lastFrameTime;
-
-            // Cập nhật Vật lý/Di chuyển
-            
-            // 1. Tăng tốc độ
-            if (isMovingLeft) {
-                xVelocity -= moveAcceleration;
-            } else if (isMovingRight) {
-                xVelocity += moveAcceleration;
-            }
-
-            // 2. Giảm tốc (Ma sát)
-            xVelocity *= friction;
-            
-            // 3. Giới hạn tốc độ
-            if (xVelocity > maxSpeed) {
-                xVelocity = maxSpeed;
-            } else if (xVelocity < -maxSpeed) {
-                xVelocity = -maxSpeed;
-            }
-
-            // 4. Áp dụng Tốc độ (Ngang) và kiểm tra va chạm X
-            const previousPlayerX = playerX;
-            playerX += xVelocity;
-            checkCollisionsX(); // Sửa playerX nếu va chạm ngang
-            
-            // 5. Áp dụng Trọng lực và Tốc độ (Dọc)
-            const previousPlayerY = playerY;
-            yVelocity -= gravity;
-            playerY += yVelocity;
-
-            // 6. Kiểm tra va chạm Y
-            checkCollisionsY(previousPlayerY); // Sửa playerY và yVelocity nếu va chạm dọc
-            
-            // 7. Kiểm tra Rơi vực chết
-            if (playerY < deathFallThreshold) {
-                endGame('Bạn đã rơi xuống vực sâu!');
-                return;
-            }
-
-            // 8. Cập nhật vị trí UI
-            updatePlayerPosition();
-            updateMovingObstacles();
-            checkFinishLine();
-
-            // 9. Cập nhật Camera
-            updateCamera();
-
+            const delta = (currentTime - lastFrameTime) / 1000; // delta in seconds
             lastFrameTime = currentTime;
-            requestAnimationFrame(gameLoop);
-        }
 
-        // --- LOGIC ĐIỀU KHIỂN CẢM ỨNG (JOYSTICK VÀ JUMP) ---
-        
-        let touchIdentifier = null; // Theo dõi ngón tay đang chạm joystick
-        const joystickRadius = 70; // Bán kính joystick (140px/2)
-        const knobMovementLimit = 30; // Giới hạn di chuyển của knob
+            // Cập nhật chuyển động của các vật cản di chuyển
+            movingObstacles.forEach(obs => {
+                const currentLeft = parseInt(obs.element.style.left);
+                const maxLeft = obs.initialLeft + obs.range;
+                const minLeft = obs.initialLeft;
 
-        // Kết nối nút Nhảy (Jump Button)
-        jumpButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            jump();
-            jumpButton.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
-        });
-        jumpButton.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            jumpButton.style.backgroundColor = 'rgba(0, 0, 0, 0.35)';
-        });
+                obs.element.style.left = currentLeft + (obs.speed * obs.direction * delta * targetFPS) + 'px';
 
-        // Xử lý Joystick
-        function updateJoystickMovement(clientX, clientY) {
-            const rect = joystick.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            const deltaX = clientX - centerX;
-            
-            // Căn chỉnh khoảng cách: chỉ quan tâm trục X
-            const normalizedDeltaX = Math.min(Math.max(deltaX, -joystickRadius), joystickRadius);
-            
-            // Cập nhật vị trí knob
-            const knobX = (normalizedDeltaX / joystickRadius) * knobMovementLimit;
-            joystickKnob.style.transform = `translate(${knobX}px, 0)`;
+                if (obs.direction === 1 && parseInt(obs.element.style.left) >= maxLeft) {
+                    obs.direction = -1;
+                    obs.element.style.left = maxLeft + 'px'; // Clamp position
+                } else if (obs.direction === -1 && parseInt(obs.element.style.left) <= minLeft) {
+                    obs.direction = 1;
+                    obs.element.style.left = minLeft + 'px'; // Clamp position
+                }
+            });
 
-            // Cập nhật trạng thái di chuyển
-            const threshold = 15; // Ngưỡng tối thiểu để kích hoạt di chuyển
-            isMovingLeft = normalizedDeltaX < -threshold; 
-            isMovingRight = normalizedDeltaX > threshold;
-        }
 
-        joystick.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (touchIdentifier === null) {
-                const touch = e.changedTouches[0];
-                touchIdentifier = touch.identifier;
-                updateJoystickMovement(touch.clientX, touch.clientY);
-            }
-        });
+            // --- XỬ LÝ CHUYỂN ĐỘNG VÀ VA CHẠM THEO TỪNG TRỤC ---
 
-        joystick.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const touch = e.changedTouches[i];
-                if (touch.identifier === touchIdentifier) {
-                    updateJoystickMovement(touch.clientX, touch.clientY);
-                    break;
+            // 1. Cập nhật và xử lý chuyển động X
+            if (isMovingLeft) {
+                xVelocity = Math.max(-maxSpeed, xVelocity - moveAcceleration * delta * targetFPS);
+            } else if (isMovingRight) {
+                xVelocity = Math.min(maxSpeed, xVelocity + moveAcceleration * delta * targetFPS);
+            } else {
+                if (xVelocity > 0) {
+                    xVelocity = Math.max(0, xVelocity - friction * delta * targetFPS);
+                } else if (xVelocity < 0) {
+                    xVelocity = Math.min(0, xVelocity + friction * delta * targetFPS);
                 }
             }
-        });
+            playerX += xVelocity;
+            playerX = Math.max(0, Math.min(level1Data.worldWidth - playerActualWidth, playerX)); // Đảm bảo player không ra ngoài biên thế giới
+            checkCollisionsX(); // Kiểm tra va chạm X sau khi di chuyển X
 
-        joystick.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            let touchEnded = false;
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const touch = e.changedTouches[i];
-                if (touch.identifier === touchIdentifier) {
-                    touchIdentifier = null;
-                    isMovingLeft = false;
-                    isMovingRight = false;
-                    joystickKnob.style.transform = 'translate(0, 0)'; // Đặt knob về giữa
-                    touchEnded = true;
-                    break;
-                }
+            // 2. Cập nhật và xử lý chuyển động Y (trọng lực và nhảy)
+            const previousPlayerY = playerY;
+            playerY += yVelocity;
+            yVelocity -= gravity * delta * targetFPS;
+            checkCollisionsY(previousPlayerY); // Truyền vị trí Y trước đó vào hàm va chạm Y
+
+            // Cập nhật vị trí hiển thị của player
+            updatePlayerPosition();
+
+            // Cập nhật camera
+            const playerScreenX = playerX + cameraX;
+            const cameraThreshold = gameContainer.offsetWidth / 3; // 1/3 màn hình từ mỗi bên
+
+            if (playerScreenX > gameContainer.offsetWidth - cameraThreshold && xVelocity > 0) {
+                cameraX -= (playerScreenX - (gameContainer.offsetWidth - cameraThreshold));
+            } else if (playerScreenX < cameraThreshold && xVelocity < 0) {
+                cameraX += (cameraThreshold - playerScreenX);
             }
-            // Nếu có nhiều ngón chạm, có thể cần logic chuyển touch ID
-        });
-        // -----------------------------------------------
 
-        // --- LOGIC ĐIỀU KHIỂN BÀN PHÍM (PC) ---
-        document.addEventListener('keydown', (e) => {
+            // Giới hạn camera không ra ngoài biên thế giới
+            cameraX = Math.min(0, cameraX); // Không cho camera vượt quá 0 về bên trái
+            cameraX = Math.max(gameContainer.offsetWidth - level1Data.worldWidth, cameraX); // Không cho camera vượt quá biên phải của thế giới
+
+            gameWorld.style.transform = `translateX(${cameraX}px)`;
+
+            checkWin();
+            updateTimer();
+
+            window.animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // Keyboard controls (desktop + laptop)
+        document.addEventListener('keydown', (event) => {
             if (isGameOver) return;
-            switch (e.key) {
-                case 'a':
-                case 'A':
+
+            switch (event.code) {
+                case 'KeyA':
                 case 'ArrowLeft':
                     isMovingLeft = true;
                     break;
-                case 'd':
-                case 'D':
+                case 'KeyD':
                 case 'ArrowRight':
                     isMovingRight = true;
                     break;
-                case ' ':
-                    e.preventDefault(); // Ngăn cuộn trang khi nhấn Space
+                case 'Space':
                     jump();
                     break;
             }
         });
 
-        document.addEventListener('keyup', (e) => {
+        document.addEventListener('keyup', (event) => {
             if (isGameOver) return;
-            switch (e.key) {
-                case 'a':
-                case 'A':
+
+            switch (event.code) {
+                case 'KeyA':
                 case 'ArrowLeft':
                     isMovingLeft = false;
                     break;
-                case 'd':
-                case 'D':
+                case 'KeyD':
                 case 'ArrowRight':
                     isMovingRight = false;
                     break;
             }
         });
-        // -----------------------------------------------
 
-        // --- KHỞI TẠO GAME VÀ LOGIC KIỂM TRA THIẾT BỊ ---
-        
-        /**
-         * Kiểm tra xem thiết bị có hỗ trợ cảm ứng (có thể là di động/tablet) hay không.
-         * Nếu là PC, ẩn controls cảm ứng và chỉ hiển thị hướng dẫn PC.
-         */
-        function checkTouchDevice() {
-            const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
-            
-            if (!isTouch) {
-                // Ẩn Controls cảm ứng trên PC
-                controlsWrapper.style.display = 'none';
-                controlsDesc.innerHTML = 'Hướng dẫn: **A / D** hoặc **← / →** để di chuyển. **Space** để nhảy.';
-                controlsDesc.style.maxWidth = '300px'; 
-            } else {
-                 // Điều chỉnh mô tả di động
-                 controlsDesc.innerHTML = 'Hướng dẫn: Dùng **Joystick** để di chuyển. Chạm nút **NHẢY** để nhảy.';
-            }
+        // Mobile / touch jump button handling
+        const jumpButton = document.getElementById('jump-button');
+        if (jumpButton) {
+            const handleJumpStart = (e) => {
+                // Prevent page scroll on touch
+                if (e.cancelable) e.preventDefault();
+                if (!isGameOver) jump();
+                jumpButton.classList.add('active');
+            };
+            const handleJumpEnd = (e) => {
+                if (e && e.cancelable) e.preventDefault();
+                jumpButton.classList.remove('active');
+            };
+
+            // Touch events for mobile
+            jumpButton.addEventListener('touchstart', handleJumpStart, { passive: false });
+            jumpButton.addEventListener('touchend', handleJumpEnd);
+            jumpButton.addEventListener('touchcancel', handleJumpEnd);
+
+            // Mouse events for desktop / testing
+            jumpButton.addEventListener('mousedown', handleJumpStart);
+            document.addEventListener('mouseup', handleJumpEnd);
         }
 
+        // Joystick handling for left-side movement (touch + mouse)
+        const joystick = document.getElementById('joystick');
+        const joystickKnob = document.getElementById('joystick-knob');
+        if (joystick && joystickKnob) {
+            let activeTouchId = null;
+            let isPointerDown = false;
 
-        function init() {
-            // Khôi phục trạng thái game nếu có
-            const storedCharacter = localStorage.getItem('currentCharacter');
-            const storedLevel = localStorage.getItem('gameLevel');
-            if (storedCharacter && storedLevel) {
-                currentCharacter = storedCharacter;
-                gameLevel = parseInt(storedLevel);
+            const getLocalPos = (clientX, clientY) => {
+                const r = joystick.getBoundingClientRect();
+                return { x: clientX - (r.left + r.width / 2), y: clientY - (r.top + r.height / 2), radius: r.width / 2 };
+            };
+
+            const updateKnob = (dx, dy, radius) => {
+                // limit knob travel to 40% of radius horizontally for visual clarity
+                const max = radius * 0.45;
+                const tx = Math.max(-max, Math.min(max, dx));
+                const ty = Math.max(-max, Math.min(max, dy));
+                joystickKnob.style.transform = `translate(${tx}px, ${ty}px)`;
+            };
+
+            const handleStart = (clientX, clientY, id) => {
+                activeTouchId = id;
+                isPointerDown = true;
+                const p = getLocalPos(clientX, clientY);
+                updateKnob(p.x, p.y, p.radius);
+                // decide left/right based on x
+                const dead = p.radius * 0.18;
+                if (p.x < -dead) {
+                    isMovingLeft = true;
+                    isMovingRight = false;
+                } else if (p.x > dead) {
+                    isMovingRight = true;
+                    isMovingLeft = false;
+                } else {
+                    isMovingLeft = false;
+                    isMovingRight = false;
+                }
+            };
+
+            const handleMove = (clientX, clientY) => {
+                if (!isPointerDown) return;
+                const p = getLocalPos(clientX, clientY);
+                updateKnob(p.x, p.y, p.radius);
+                const dead = p.radius * 0.18;
+                if (p.x < -dead) {
+                    isMovingLeft = true;
+                    isMovingRight = false;
+                } else if (p.x > dead) {
+                    isMovingRight = true;
+                    isMovingLeft = false;
+                } else {
+                    isMovingLeft = false;
+                    isMovingRight = false;
+                }
+            };
+
+            const handleEnd = () => {
+                activeTouchId = null;
+                isPointerDown = false;
+                isMovingLeft = false;
+                isMovingRight = false;
+                joystickKnob.style.transform = 'translate(0, 0)';
+            };
+
+            // Touch events
+            joystick.addEventListener('touchstart', (ev) => {
+                if (ev.cancelable) ev.preventDefault();
+                const t = ev.changedTouches[0];
+                handleStart(t.clientX, t.clientY, t.identifier);
+            }, { passive: false });
+
+            joystick.addEventListener('touchmove', (ev) => {
+                if (ev.cancelable) ev.preventDefault();
+                // find our active touch
+                for (let i = 0; i < ev.changedTouches.length; i++) {
+                    const t = ev.changedTouches[i];
+                    if (activeTouchId === null || t.identifier === activeTouchId) {
+                        handleMove(t.clientX, t.clientY);
+                        break;
+                    }
+                }
+            }, { passive: false });
+
+            joystick.addEventListener('touchend', (ev) => {
+                for (let i = 0; i < ev.changedTouches.length; i++) {
+                    if (ev.changedTouches[i].identifier === activeTouchId) {
+                        handleEnd();
+                        break;
+                    }
+                }
+            });
+
+            joystick.addEventListener('touchcancel', handleEnd);
+
+            // Mouse support for testing on desktop
+            joystick.addEventListener('mousedown', (ev) => {
+                ev.preventDefault();
+                handleStart(ev.clientX, ev.clientY, 'mouse');
+                const moveHandler = (me) => handleMove(me.clientX, me.clientY);
+                const upHandler = () => { handleEnd(); document.removeEventListener('mousemove', moveHandler); document.removeEventListener('mouseup', upHandler); };
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', upHandler);
+            });
+        }
+
+        function initializeGame() {
+            // Khôi phục trạng thái nhân vật từ localStorage nếu có
+            const savedCharacter = localStorage.getItem('currentCharacter');
+            const savedLevel = localStorage.getItem('gameLevel');
+            if (savedCharacter && savedLevel) {
+                currentCharacter = savedCharacter;
+                gameLevel = parseInt(savedLevel);
+                if (gameLevel > MAX_LEVEL) {
+                    gameLevel = 1;
+                    currentCharacter = characterProgression[1];
+                }
             }
-            
+
+            createLevel(level1Data);
+            gameWorld.style.width = level1Data.worldWidth + 'px';
+
+            // Cập nhật hình ảnh nhân vật và hiển thị level
             player.style.backgroundImage = `url('${currentCharacter}')`;
-            
-            checkTouchDevice(); // Áp dụng tối ưu hóa giao diện PC/Mobile
+            updateLevelDisplay();
 
-            resetGame(); // Bắt đầu game
+            playerX = 50;
+            // Đặt nhân vật ở vị trí an toàn: tìm platform ngay dưới vị trí playerX và đặt đáy hitbox chạm bề mặt platform
+            const startingPlatform = level1Data.elements.find(e => e.type === 'platform' && playerX >= e.left && playerX < e.left + e.width) || level1Data.elements.find(e => e.type === 'platform');
+            if (startingPlatform) {
+                const platformTop = startingPlatform.bottom + startingPlatform.height;
+                // playerY là tọa độ đáy hiển thị của nhân vật, nhưng hitbox đáy = playerY + hitboxYOffset
+                // Do đó để đáy hitbox chạm đúng mặt platform, đặt playerY = platformTop - hitboxYOffset
+                playerY = platformTop - hitboxYOffset;
+                isOnPlatform = true;
+            } else {
+                // Fallback nếu không tìm thấy platform: để nhân vật ở vùng an toàn mặc định
+                playerY = 50;
+                isOnPlatform = false;
+            }
+
+            xVelocity = 0;
+            yVelocity = 0;
+            isJumping = false;
+            isMovingLeft = false;
+            isMovingRight = false;
+            isGameOver = false;
+
+            playerActualWidth = playerBaseWidth;
+            playerActualHeight = playerBaseHeight;
+            player.classList.remove('crouching', 'in-air', 'flipped');
+            facingRight = true;
+            cameraX = 0;
+
+            gameMessage.style.display = 'none';
+
+            startTime = performance.now();
+            elapsedTime = 0;
+            timeDisplay.textContent = 'Thời gian: 00:00.00';
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 10);
+
+            updatePlayerPosition();
+
+            if (window.animationFrameId) {
+                cancelAnimationFrame(window.animationFrameId);
+            }
+            lastFrameTime = performance.now();
+            window.animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        init();
+        initializeGame();
     </script>
 </body>
 </html>
