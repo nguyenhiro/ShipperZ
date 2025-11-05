@@ -192,7 +192,27 @@
             flex-direction: column;
             gap: 10px;
         }
+        #music-toggle-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            background-color: #f7931e; /* Màu cam nổi bật */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 0.9em;
+            z-index: 50; /* Đảm bảo nút nằm trên mọi thứ */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background-color 0.2s;
+        }
 
+        #music-toggle-button:hover {
+            background-color: #e5820d;
+        }
         #time-display, #level-display {
             font-weight: bold;
             font-size: 1.2em;
@@ -242,7 +262,7 @@
             background: rgba(255,255,255,0.12);
             transform: translateY(1px);
         }
-
+        
         /* Left-side joystick container */
         #joystick {
             position: absolute;
@@ -339,6 +359,9 @@
             <div id="player"></div>
             <div id="finish-line"></div>
         </div>
+    <div id="music-toggle-button" role="button" aria-label="Bật Tắt Nhạc">
+            🔊 BẬT NHẠC
+        </div>
         <!-- Left-side touch joystick for movement -->
         <div id="joystick" aria-hidden="false">
             <div id="joystick-knob"></div>
@@ -365,26 +388,48 @@
     </audio>
     <script>
     const music = document.getElementById('background-music');
-    
-    // Hàm cố gắng phát nhạc
-    function attemptPlayMusic() {
-        if (music) {
+    const musicToggleButton = document.getElementById('music-toggle-button');
+    let isMusicPlaying = false;
+
+    /**
+     * Hàm chuyển đổi trạng thái Bật/Tắt nhạc nền.
+     * Sử dụng .play() khi bật để vượt qua chính sách Autoplay.
+     */
+    function toggleMusic() {
+        if (!musicToggleButton || !music) return;
+        
+        if (isMusicPlaying) {
+            // Trường hợp 1: Đang phát -> TẮT NHẠC
+            music.pause();
+            isMusicPlaying = false;
+            musicToggleButton.textContent = '🔊 BẬT NHẠC';
+            musicToggleButton.style.backgroundColor = '#f7931e'; // Màu Bật
+        } else {
+            // Trường hợp 2: Đang tắt -> BẬT NHẠC
             music.volume = 0.5; // Đặt âm lượng 50%
-            music.play().catch(error => {
-                // Thường lỗi do chưa có tương tác. Ta sẽ thử lại ở lần tương tác sau.
+            
+            music.play().then(() => {
+                // Kích hoạt thành công
+                isMusicPlaying = true;
+                musicToggleButton.textContent = '🔇 TẮT NHẠC';
+                musicToggleButton.style.backgroundColor = '#d9534f'; // Màu Tắt
+            }).catch(error => {
+                // Xử lý lỗi nếu trình duyệt chặn phát (dù đã có tương tác)
+                console.error("Lỗi khi cố gắng phát nhạc. Vui lòng thử lại.", error);
+                alert("Trình duyệt không cho phép phát nhạc ngay lập tức. Hãy đảm bảo bạn đã nhấn nút này lần đầu để kích hoạt.");
             });
         }
-        
-        // Gỡ bỏ listener sau khi đã cố gắng phát nhạc lần đầu
-        document.removeEventListener('click', attemptPlayMusic);
-        document.removeEventListener('keydown', attemptPlayMusic);
-        document.removeEventListener('touchstart', attemptPlayMusic);
     }
-    
-    // Gắn listener vào các sự kiện tương tác đầu tiên của người dùng
-    document.addEventListener('click', attemptPlayMusic);
-    document.addEventListener('keydown', attemptPlayMusic);
-    document.addEventListener('touchstart', attemptPlayMusic);
+
+    // Gắn sự kiện vào nút cho cả PC (click) và Mobile (touchstart)
+    musicToggleButton.addEventListener('click', toggleMusic);
+    musicToggleButton.addEventListener('touchstart', (e) => {
+        // e.preventDefault() cần thiết để ngăn chặn sự kiện chạm gây ra scroll trên di động
+        e.preventDefault(); 
+        toggleMusic();
+    });
+
+    // ... (logic game của bạn tiếp tục từ đây)
                 /*
                  Image notes:
                  - For best visual results, use images with transparent backgrounds (PNG with alpha) for obstacles
