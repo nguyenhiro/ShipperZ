@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mario Đơn Giản (Sửa lỗi đứng trên platform)</title>
+    <title>Game ShipperZ Vui Vẻ</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -359,8 +359,32 @@
         <p>Bạn đã chiến thắng!</p>
         <button id="reset-button">Chơi Lại</button>
     </div>
-
+    <audio id="background-music" loop>
+        <source src="giangsinh.mp3" type="audio/mpeg"> 
+        Trình duyệt của bạn không hỗ trợ thẻ audio.
+    </audio>
     <script>
+    const music = document.getElementById('background-music');
+    
+    // Hàm cố gắng phát nhạc
+    function attemptPlayMusic() {
+        if (music) {
+            music.volume = 0.5; // Đặt âm lượng 50%
+            music.play().catch(error => {
+                // Thường lỗi do chưa có tương tác. Ta sẽ thử lại ở lần tương tác sau.
+            });
+        }
+        
+        // Gỡ bỏ listener sau khi đã cố gắng phát nhạc lần đầu
+        document.removeEventListener('click', attemptPlayMusic);
+        document.removeEventListener('keydown', attemptPlayMusic);
+        document.removeEventListener('touchstart', attemptPlayMusic);
+    }
+    
+    // Gắn listener vào các sự kiện tương tác đầu tiên của người dùng
+    document.addEventListener('click', attemptPlayMusic);
+    document.addEventListener('keydown', attemptPlayMusic);
+    document.addEventListener('touchstart', attemptPlayMusic);
                 /*
                  Image notes:
                  - For best visual results, use images with transparent backgrounds (PNG with alpha) for obstacles
